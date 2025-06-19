@@ -1,0 +1,97 @@
+/* Win Animation with Sparkle Effect */
+@keyframes winEffect {
+    0% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.5)); }
+    50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(0, 255, 0, 1)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.5)); }
+  }
+  
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+  
+  .gameContent--winGlow {
+    animation: winEffect 1s infinite alternate;
+    position: relative;
+  }
+  
+  .gameContent--winGlow::after {
+    content: '\2728'; /* Sparkle emoji */
+    font-size: 2rem;
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    animation: sparkle 1s infinite alternate ease-in-out;
+  }
+  
+  /* Shake Animation */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+  }
+  
+  .gameContent--shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+/* Draw Animation - Wiggle Effect */
+@keyframes wiggle {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+    75% { transform: rotate(-3deg); }
+    100% { transform: rotate(0deg); }
+  }
+  
+  .gameContent--drawEffect {
+    animation: wiggle 0.6s ease-in-out infinite;
+  }
+  .gameContent__timer {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    color: white;
+    z-index: 10;
+    display: none;
+  }
+  
+  .gameContent--isActive .gameContent__timer {
+    display: block;
+  }
+  /* Timer Styles */
+.header__timer {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  transition: color 0.3s;
+}
+
+.header__timer--warning {
+  color: #ff4757;
+  animation: pulse 0.5s infinite alternate;
+}
+
+.header__timerContainer {
+  position: relative;
+  width: 100%;
+  max-width: 200px;
+  margin: 1 auto;
+}
+
+.header__timerProgress {
+  height: 4px;
+  background: #2ed573;
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  transition: width 0.1s linear;
+}
+
+@keyframes pulse {
+  from { opacity: 1; }
+  to { opacity: 0.5; }
+}

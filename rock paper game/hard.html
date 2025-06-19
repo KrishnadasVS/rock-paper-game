@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=id, initial-scale=1.0" />
+    <title>Rock Paper Scissors - Hard Mode</title>
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/animation.css" />
+    <style>
+      .timer-container {
+        position: absolute left;
+        top: 20px;
+        right: 20px;
+        background: rgb(160, 10, 10);
+        padding: 10px 15px;
+        border-radius: 10px;
+        font-weight: bold;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+      }
+      .rule-change-notification {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgb(152, 16, 16);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        text-align: center;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="timer-container">
+        Rules Change In: <span id="ruleChangeTimer">15</span>s
+      </div>
+      <div class="rule-change-notification" id="ruleChangeNotification">
+        <h2>Rules Reversed!</h2>
+        <p>The game rules have now changed to medium difficulty!</p>
+      </div>
+
+      <div class="modal">
+        <div class="modal__overlay"></div>
+        <div class="modal__content">
+          <div class="modal__header">
+            <p class="modal__text">Rules</p>
+            <img
+              class="modal__closeIcon"
+              src="./images/icon-close.svg"
+              alt="close icon"
+            />
+          </div>
+          <img
+            class="modal__image"
+            src="./images/image-rules.svg"
+            alt="rules image"
+          />
+        </div>
+      </div>
+      <div class="container__content">
+        <header class="header">
+          <button class="homeButton" onclick="location.href='homepage.html'">
+            Home
+          </button>
+          <p class="header__logo">
+            <span> Rock </span>
+            <span> Paper </span>
+            <span> Scissors </span>
+          </p>
+          <div class="header__scoreContent">
+            <p class="header__scoreText">score</p>
+            <p class="header__scoreNumber">0</p>
+          </div>
+          <div class="header__scoreContent">
+            <p class="header__scoreText">Computer</p>
+            <p class="header__computerScoreNumber">0</p>
+          </div>
+        </header>
+        <div class="gameContent">
+          <!-- GAME BACKGROUND-->
+          <div class="gameContent__bg"></div>
+          <!-- GAME TEXT-->
+          <div class="gameContent__text gameContent__text--isYou">
+            You Picked
+          </div>
+          <div class="gameContent__text gameContent__text--isComputer">
+            The house picked
+          </div>
+          <!-- GAME CHOICES-->
+          <div
+            class="gameContent__gameChoice gameContent__gameChoice--isPaper"
+            data-choice="Paper"
+          >
+            <div class="gameContent__image">
+              <img src="./images/icon-paper.svg" alt="paper choice" />
+            </div>
+          </div>
+          <div
+            class="gameContent__gameChoice gameContent__gameChoice--isScissors"
+            data-choice="Scissors"
+          >
+            <div class="gameContent__image">
+              <img src="./images/icon-scissors.svg" alt="scissors choice" />
+            </div>
+          </div>
+          <div
+            class="gameContent__gameChoice gameContent__gameChoice--isRock"
+            data-choice="Rock"
+          >
+            <div class="gameContent__image">
+              <img src="./images/icon-rock.svg" alt="rock choice" />
+            </div>
+          </div>
+          <div
+            class="gameContent__gameChoice gameContent__gameChoice--isComputer"
+          >
+            <div class="gameContent__image">
+              <span class="gameContent__countdownText"></span>
+              <img
+                src=""
+                class="gameContent__gameChoiceImage"
+                alt="computer choice"
+              />
+            </div>
+          </div>
+          <div class="gameContent__result">
+            <lottie-player
+              src="https://assets10.lottiefiles.com/packages/lf20_aEFaHc.json"
+              background="transparent"
+              speed="1"
+              style="width: 300px; height: 300px; position: absolute"
+              autoplay
+            ></lottie-player>
+            <span class="gameContent__resultText">You Win</span>
+            <button class="gameContent__resultButton">Play again</button>
+          </div>
+        </div>
+      </div>
+      <div class="container__rules">Rules</div>
+    </div>
+
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script type="module" src="/js/scripts3.js"></script>
+    <div class="current-mode-display" id="currentModeDisplay">NORMAL MODE</div>
+  </body>
+</html>

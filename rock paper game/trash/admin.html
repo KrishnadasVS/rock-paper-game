@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | Rock Paper Saga</title>
+    <link rel="stylesheet" href="css/admin.css" />
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+    <script type="module">
+      import { verifyPageAccess, handleLogout } from "./js/auth.js";
+      import { app, auth, db } from "./js/auth.js";
+      import {
+        getDoc,
+        doc,
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          // Verify admin access
+          await verifyPageAccess();
+
+          // Set up logout button
+          document
+            .getElementById("admin-logout")
+            .addEventListener("click", handleLogout);
+
+          // Set admin email
+          const userId = localStorage.getItem("userId");
+          if (userId) {
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+              document.getElementById("admin-email").textContent =
+                userDoc.data().email;
+            }
+          }
+        } catch (error) {
+          console.error("Admin initialization error:", error);
+          window.location.href = "login.html";
+        }
+      });
+    </script>
+  </head>
+  <body class="light-mode">
+    <!-- Admin Navigation Sidebar -->
+    <nav class="admin-sidebar">
+      <div class="sidebar-header">
+        <h2>Admin Panel</h2>
+        <div class="admin-profile">
+          <i class="bx bxs-user-circle"></i>
+          <span id="admin-email">admin@example.com</span>
+        </div>
+      </div>
+      <ul class="admin-menu">
+        <li class="active" data-section="dashboard">
+          <i class="bx bx-stats"></i>
+          <span>Dashboard</span>
+        </li>
+        <li data-section="users">
+          <i class="bx bx-user"></i>
+          <span>User Management</span>
+        </li>
+        <li data-section="scores">
+          <i class="bx bx-trophy"></i>
+          <span>Scores & Leaderboard</span>
+        </li>
+        <li data-section="feedback">
+          <i class="bx bx-message-alt"></i>
+          <span>User Feedback</span>
+        </li>
+        <li data-section="settings">
+          <i class="bx bx-cog"></i>
+          <span>Settings</span>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button id="admin-logout" class="logout-btn">
+          <i class="bx bx-log-out"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Admin Content -->
+    <main class="admin-main">
+      <!-- Header -->
+      <header class="admin-header">
+        <h1 id="admin-section-title">Dashboard</h1>
+        <div class="header-controls">
+          <button
+            id="admin-dark-mode"
+            class="control-btn"
+            title="Toggle Dark Mode"
+          >
+            <i class="bx bxs-moon"></i>
+          </button>
+          <button id="refresh-data" class="control-btn" title="Refresh Data">
+            <i class="bx bx-refresh"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dashboard Section -->
+      <section id="dashboard-section" class="admin-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="bx bx-user"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Total Users</h3>
+              <span id="total-users">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="bx bx-game"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Games Played</h3>
+              <span id="total-games">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="bx bx-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Verified Users</h3>
+              <span id="verified-users">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="bx bx-line-chart"></i>
+            </div>
+            <div class="stat-info">
+              <h3>Avg. Score</h3>
+              <span id="avg-score">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="charts-container">
+          <div class="chart-card">
+            <h3>User Registrations</h3>
+            <canvas id="registrations-chart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Difficulty Distribution</h3>
+            <canvas id="difficulty-chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- User Management Section -->
+      <section id="users-section" class="admin-section hidden">
+        <div class="section-header">
+          <h2>User Management</h2>
+          <div class="search-filter">
+            <input type="text" id="user-search" placeholder="Search users..." />
+            <select id="user-filter">
+              <option value="all">All Users</option>
+              <option value="verified">Verified Only</option>
+              <option value="unverified">Unverified Only</option>
+              <option value="banned">Banned</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="users-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Verified</th>
+                <th>Score</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body">
+              <!-- Users will be loaded here -->
+              <tr class="loading-row">
+                <td colspan="7">
+                  <i class="bx bx-loader-circle bx-spin"></i>
+                  <span>Loading users...</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination-controls">
+            <button id="prev-page" disabled>
+              <i class="bx bx-chevron-left"></i>
+            </button>
+            <span id="page-info">Page 1 of 1</span>
+            <button id="next-page" disabled>
+              <i class="bx bx-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scores Section -->
+      <section id="scores-section" class="admin-section hidden">
+        <div class="section-header">
+          <h2>Leaderboard Management</h2>
+          <div class="score-actions">
+            <button id="export-scores" class="action-btn">
+              <i class="bx bx-export"></i> Export CSV
+            </button>
+            <button id="reset-scores" class="action-btn danger">
+              <i class="bx bx-reset"></i> Reset All Scores
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="scores-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Score</th>
+                <th>Difficulty</th>
+                <th>Last Played</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="scores-table-body">
+              <!-- Scores will be loaded here -->
+              <tr class="loading-row">
+                <td colspan="7">
+                  <i class="bx bx-loader-circle bx-spin"></i>
+                  <span>Loading scores...</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Feedback Section -->
+      <section id="feedback-section" class="admin-section hidden">
+        <div class="section-header">
+          <h2>User Feedback</h2>
+          <div class="feedback-filter">
+            <select id="feedback-status">
+              <option value="all">All Feedback</option>
+              <option value="unread">Unread</option>
+              <option value="read">Read</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+        <div class="feedback-list" id="feedback-list">
+          <!-- Feedback items will be loaded here -->
+          <div class="loading-state">
+            <i class="bx bx-loader-circle bx-spin"></i>
+            <span>Loading feedback...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings Section -->
+      <section id="settings-section" class="admin-section hidden">
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>System Settings</h3>
+            <div class="setting-item">
+              <label>Maintenance Mode</label>
+              <label class="switch">
+                <input type="checkbox" id="maintenance-mode" />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>New User Registration</label>
+              <label class="switch">
+                <input type="checkbox" id="registration-enabled" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <label>Email Verification Required</label>
+              <label class="switch">
+                <input type="checkbox" id="email-verification" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3>Email Templates</h3>
+            <div class="setting-item">
+              <label>Verification Email</label>
+              <button id="edit-verification-email" class="edit-btn">
+                <i class="bx bx-edit"></i> Edit
+              </button>
+            </div>
+            <div class="setting-item">
+              <label>Password Reset Email</label>
+              <button id="edit-reset-email" class="edit-btn">
+                <i class="bx bx-edit"></i> Edit
+              </button>
+            </div>
+            <div class="setting-item">
+              <label>Welcome Email</label>
+              <button id="edit-welcome-email" class="edit-btn">
+                <i class="bx bx-edit"></i> Edit
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3>Backup & Restore</h3>
+            <button id="create-backup" class="action-btn full-width">
+              <i class="bx bx-cloud-upload"></i> Create Backup
+            </button>
+            <button id="restore-backup" class="action-btn full-width">
+              <i class="bx bx-cloud-download"></i> Restore Backup
+            </button>
+            <button id="export-database" class="action-btn full-width">
+              <i class="bx bx-export"></i> Export Database
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- User Modal -->
+    <div id="user-modal" class="modal hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>User Details</h3>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="user-details-grid">
+            <div class="user-avatar">
+              <i class="bx bxs-user-circle"></i>
+            </div>
+            <div class="user-info">
+              <h4 id="modal-user-name">John Doe</h4>
+              <p id="modal-user-email">john@example.com</p>
+              <div class="user-stats">
+                <div class="stat">
+                  <span>High Score:</span>
+                  <strong id="modal-user-score">0</strong>
+                </div>
+                <div class="stat">
+                  <span>Rank:</span>
+                  <strong id="modal-user-rank">-</strong>
+                </div>
+                <div class="stat">
+                  <span>Joined:</span>
+                  <strong id="modal-user-joined">2023-01-01</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-actions">
+            <h4>Account Actions</h4>
+            <div class="action-buttons">
+              <button id="verify-user" class="action-btn">
+                <i class="bx bx-check-circle"></i> Verify Email
+              </button>
+              <button id="reset-password" class="action-btn">
+                <i class="bx bx-key"></i> Reset Password
+              </button>
+              <button id="ban-user" class="action-btn danger">
+                <i class="bx bx-block"></i> Ban User
+              </button>
+              <button id="delete-user" class="action-btn danger">
+                <i class="bx bx-trash"></i> Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="cancel-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal hidden">
+      <div class="modal-content small">
+        <div class="modal-header">
+          <h3 id="confirm-title">Confirm Action</h3>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-message">
+            Are you sure you want to perform this action?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button id="confirm-cancel" class="cancel-btn">Cancel</button>
+          <button id="confirm-action" class="danger-btn">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

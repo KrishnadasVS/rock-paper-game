@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rock Paper Saga | The Ultimate Challenge</title>
+    <link rel="stylesheet" href="css/homepage.css" />
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="light-mode">
+    <!-- Background Image -->
+    <div class="background-image"></div>
+
+    <!-- Main Container -->
+    <div class="app-container">
+      <!-- Header -->
+      <header class="app-header">
+        <h1 class="logo">Rock Paper Saga</h1>
+        <div class="header-controls">
+          <button
+            id="dark-mode-btn"
+            class="control-btn"
+            title="Toggle Dark Mode"
+          >
+            <i class="bx bxs-moon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="app-main">
+        <!-- User Profile Section -->
+        <section class="profile-card">
+          <div class="avatar">
+            <i class="bx bxs-user-circle"></i>
+          </div>
+          <div class="user-info">
+            <h2 id="welcome-message">Welcome!</h2>
+            <p class="user-email" id="user-email">Player</p>
+          </div>
+          <div class="user-stats">
+            <div class="stat-box">
+              <i class="bx bx-trophy"></i>
+              <span id="high-score">0</span>
+              <small>High Score</small>
+            </div>
+            <div class="stat-box">
+              <i class="bx bx-medal"></i>
+              <span id="user-rank">-</span>
+              <small>Rank</small>
+            </div>
+          </div>
+        </section>
+
+        <!-- Game Controls -->
+        <section class="game-controls">
+          <button id="play-btn" class="primary-btn">
+            <i class="bx bx-play"></i>
+            <span>Play Now</span>
+          </button>
+
+          <div id="difficulty-options" class="difficulty-options hidden">
+            <button class="difficulty-btn" id="easy-btn">
+              <i class="bx bx-smile"></i>
+              <div>
+                <span>Easy</span>
+                <small>For beginners</small>
+              </div>
+            </button>
+            <button class="difficulty-btn" id="med-btn">
+              <i class="bx bx-confused"></i>
+              <div>
+                <span>Medium</span>
+                <small>Balanced challenge</small>
+              </div>
+            </button>
+            <button class="difficulty-btn" id="hard-btn">
+              <i class="bx bx-shocked"></i>
+              <div>
+                <span>Hard</span>
+                <small>Expert level</small>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <!-- Leaderboard -->
+        <section class="leaderboard-card">
+          <div class="leaderboard-header">
+            <h3><i class="bx bx-stats"></i> Leaderboard</h3>
+            <button
+              id="refresh-leaderboard"
+              class="control-btn small"
+              title="Refresh"
+            >
+              <i class="bx bx-refresh"></i>
+            </button>
+          </div>
+          <div class="leaderboard-content">
+            <div class="leaderboard-headings">
+              <span>Rank</span>
+              <span>Player</span>
+              <span>Score</span>
+            </div>
+            <div id="leaderboard-entries" class="leaderboard-entries">
+              <div class="loading-state">
+                <i class="bx bx-loader-circle bx-spin"></i>
+                <span>Loading leaderboard...</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer Controls -->
+      <footer class="app-footer">
+        <div class="footer-controls">
+          <button id="music-btn" class="control-btn" title="Toggle Music">
+            <i class="bx bxs-volume-full"></i>
+          </button>
+          <button id="feedback-btn" class="control-btn" title="Send Feedback">
+            <i class="bx bxs-message-square-dots"></i>
+          </button>
+          <button id="logout-btn" class="control-btn" title="Logout">
+            <i class="bx bx-log-out"></i>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <script src="js/homepage.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Set user info if available
+        const userName = localStorage.getItem("userName");
+        const userEmail = localStorage.getItem("userEmail");
+
+        if (userName) {
+          document.getElementById(
+            "welcome-message"
+          ).textContent = `Welcome, ${userName}!`;
+        }
+        if (userEmail) {
+          document.getElementById("user-email").textContent = userEmail;
+        }
+
+        // Check for saved dark mode preference
+        if (localStorage.getItem("darkMode") === "true") {
+          document.body.classList.add("dark-mode");
+          document.body.classList.remove("light-mode");
+        }
+      });
+    </script>
+    <script type="module">
+      import { loadLeaderboard } from "./js/leaderboard.js";
+      import { auth, db } from "./js/auth.js";
+      import {
+        getDoc,
+        doc,
+        collection,
+        query,
+        orderBy,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+      document.addEventListener("DOMContentLoaded", async function () {
+        // Set user info if available
+        const userName = localStorage.getItem("userName");
+        const userEmail = localStorage.getItem("userEmail");
+        const userId = localStorage.getItem("userId");
+
+        if (userName) {
+          document.getElementById(
+            "welcome-message"
+          ).textContent = `Welcome, ${userName}!`;
+        }
+        if (userEmail) {
+          document.getElementById("user-email").textContent = userEmail;
+        }
+
+        // Check for saved dark mode preference
+        if (localStorage.getItem("darkMode") === "true") {
+          document.body.classList.add("dark-mode");
+          document.body.classList.remove("light-mode");
+        }
+
+        // Initialize leaderboard
+        await initializeLeaderboard();
+
+        // Add refresh button functionality
+        document
+          .getElementById("refresh-leaderboard")
+          ?.addEventListener("click", async () => {
+            await initializeLeaderboard();
+          });
+      });
+
+      async function initializeLeaderboard() {
+        try {
+          const userId = localStorage.getItem("userId");
+          if (userId) {
+            // Load user's high score
+            const userDoc = await getDoc(doc(db, "users", userId));
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              document.getElementById("high-score").textContent =
+                userData.score || 0;
+            }
+          }
+
+          // Load leaderboard
+          await loadLeaderboard();
+
+          // Update user rank
+          await updateUserRank();
+        } catch (error) {
+          console.error("Error initializing leaderboard:", error);
+        }
+      }
+
+      async function updateUserRank() {
+        const userId = localStorage.getItem("userId");
+        if (!userId) return;
+
+        try {
+          const q = query(collection(db, "users"), orderBy("score", "desc"));
+          const querySnapshot = await getDocs(q);
+
+          let rank = 1;
+          let userRank = "-";
+          let found = false;
+
+          querySnapshot.forEach((doc) => {
+            if (doc.id === userId) {
+              userRank = rank;
+              found = true;
+            }
+            rank++;
+          });
+
+          document.getElementById("user-rank").textContent = found
+            ? userRank
+            : "-";
+        } catch (error) {
+          console.error("Error updating user rank:", error);
+        }
+      }
+    </script>
+  </body>
+</html>
